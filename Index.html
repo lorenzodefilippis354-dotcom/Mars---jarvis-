@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARS · JARVIS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="boot-overlay">
+  <div class="boot-inner">
+    <div class="boot-ring"></div>
+    <div class="boot-text">
+      <span class="boot-title">M.A.R.S.</span>
+      <span class="boot-sub" id="boot-status">Inizializzazione nucleo...</span>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="hud-grid" aria-hidden="true"></div>
+  <div class="hud-vignette" aria-hidden="true"></div>
+
+  <header class="topbar glass">
+    <div class="topbar-left">
+      <div class="brand">
+        <span class="brand-mark">◈</span>
+        <span class="brand-text">M.A.R.S.</span>
+        <span class="brand-tag">JARVIS OS</span>
+      </div>
+    </div>
+    <div class="topbar-center">
+      <div class="mic-indicator" id="mic-indicator" data-state="idle">
+        <span class="mic-ring"></span>
+        <span class="mic-dot"></span>
+        <span class="mic-label" id="mic-label">IN ASCOLTO DI "JARVIS"</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="clock" id="clock">--:--:--</div>
+      <button class="icon-btn" id="drive-status-btn" title="Stato Google Drive" data-state="disconnected">
+        <span class="drive-dot"></span>
+        <span class="drive-label" id="drive-label">DRIVE OFFLINE</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="body-shell">
+    <nav class="sidenav glass">
+      <button class="nav-item active" data-section="home">
+        <span class="nav-icon">⌂</span><span class="nav-label">HOME</span>
+      </button>
+      <button class="nav-item" data-section="notes">
+        <span class="nav-icon">✎</span><span class="nav-label">MEMORIA</span>
+      </button>
+      <button class="nav-item" data-section="tasks">
+        <span class="nav-icon">☑</span><span class="nav-label">COMPITI</span>
+      </button>
+      <button class="nav-item" data-section="voice">
+        <span class="nav-icon">◉</span><span class="nav-label">CONSOLE VOCALE</span>
+      </button>
+      <button class="nav-item" data-section="settings">
+        <span class="nav-icon">⚙</span><span class="nav-label">IMPOSTAZIONI</span>
+      </button>
+      <div class="sidenav-footer">
+        <div class="system-mini">
+          <div class="system-mini-row"><span>NOTE</span><span id="mini-notes-count">0</span></div>
+          <div class="system-mini-row"><span>COMPITI</span><span id="mini-tasks-count">0</span></div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="content">
+      <section class="view active" id="view-home">
+        <div class="view-header">
+          <h1>Bentornato, <span id="user-greeting-name">Comandante</span></h1>
+          <p class="view-sub" id="home-datetime">—</p>
+        </div>
+
+        <div class="grid grid-3">
+          <div class="panel glass hud-corners">
+            <div class="panel-title">STATO SISTEMA</div>
+            <div class="status-row"><span>Google Drive</span><span class="tag" id="home-drive-status">Disconnesso</span></div>
+            <div class="status-row"><span>Riconoscimento vocale</span><span class="tag" id="home-voice-status">Inattivo</span></div>
+            <div class="status-row"><span>Sincronizzazione</span><span class="tag" id="home-sync-status">—</span></div>
+          </div>
+          <div class="panel glass hud-corners">
+            <div class="panel-title">MEMORIA RECENTE</div>
+            <ul class="mini-list" id="home-recent-notes">
+              <li class="empty-hint">Nessuna nota ancora. Prova a dire "Jarvis, nota idea..."</li>
+            </ul>
+          </div>
+          <div class="panel glass hud-corners">
+            <div class="panel-title">COMPITI ATTIVI</div>
+            <ul class="mini-list" id="home-recent-tasks">
+              <li class="empty-hint">Nessun compito attivo.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel glass hud-corners full-width">
+          <div class="panel-title">ULTIMI COMANDI</div>
+          <ul class="command-feed" id="home-command-feed">
+            <li class="empty-hint">Il registro comandi apparirà qui.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="view" id="view-notes">
+        <div class="view-header">
+          <h1>Memoria</h1>
+          <p class="view-sub">Note, idee e frammenti salvati su Google Drive.</p>
+        </div>
+        <div class="toolbar">
+          <input type="text" id="note-search" class="hud-input" placeholder="Cerca nella memoria...">
+          <button class="btn btn-primary" id="note-new-btn">+ Nuova nota</button>
+        </div>
+        <div id="note-editor" class="panel glass hud-corners hidden">
+          <input type="text" id="note-title-input" class="hud-input hud-input-title" placeholder="Titolo">
+          <textarea id="note-body-input" class="hud-textarea" placeholder="Scrivi qui..."></textarea>
+          <div class="toolbar toolbar-right">
+            <button class="btn btn-ghost" id="note-cancel-btn">Annulla</button>
+            <button class="btn btn-primary" id="note-save-btn">Salva nota</button>
+          </div>
+        </div>
+        <div class="grid grid-cards" id="notes-list"></div>
+      </section>
+
+      <section class="view" id="view-tasks">
+        <div class="view-header">
+          <h1>Compiti</h1>
+          <p class="view-sub">Attività da svolgere, con priorità.</p>
+        </div>
+        <div class="toolbar">
+          <input type="text" id="task-input" class="hud-input" placeholder="Aggiungi un nuovo compito...">
+          <select id="task-priority-input" class="hud-select">
+            <option value="low">Bassa</option>
+            <option value="medium" selected>Media</option>
+            <option value="high">Alta</option>
+          </select>
+          <button class="btn btn-primary" id="task-add-btn">+ Aggiungi</button>
+        </div>
+        <div class="task-columns">
+          <div class="panel glass hud-corners">
+            <div class="panel-title">DA FARE</div>
+            <ul class="task-list" id="tasks-pending-list"></ul>
+          </div>
+          <div class="panel glass hud-corners">
+            <div class="panel-title">COMPLETATI</div>
+            <ul class="task-list" id="tasks-done-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-voice">
+        <div class="view-header">
+          <h1>Console Vocale</h1>
+          <p class="view-sub">Parla con Jarvis. Parola di attivazione: <strong>"Jarvis"</strong>.</p>
+        </div>
+        <div class="panel glass hud-corners voice-console-panel">
+          <div class="voice-orb-wrap">
+            <div class="voice-orb" id="voice-orb" data-state="idle"></div>
+          </div>
+          <div class="voice-transcript" id="voice-transcript">In attesa della parola di attivazione "Jarvis"...</div>
+          <div class="voice-controls">
+            <button class="btn btn-primary" id="voice-talk-btn">🎙 Parla ora</button>
+            <button class="btn btn-ghost" id="voice-mute-btn" data-muted="false">🔊 Risposte vocali: ON</button>
+            <button class="btn btn-ghost" id="voice-listen-toggle" data-active="false">◉ Ascolto continuo: OFF</button>
+          </div>
+        </div>
+        <div class="panel glass hud-corners full-width">
+          <div class="panel-title">CRONOLOGIA COMANDI</div>
+          <ul class="command-feed" id="voice-command-history">
+            <li class="empty-hint">Nessun comando ancora registrato.</li>
+          </ul>
+        </div>
+        <div class="panel glass hud-corners full-width">
+          <div class="panel-title">COMANDI DISPONIBILI</div>
+          <div class="command-hint-grid">
+            <div class="command-hint"><span class="cmd">Jarvis, nota [testo]</span><span>Salva una nuova nota</span></div>
+            <div class="command-hint"><span class="cmd">Jarvis, mostra note</span><span>Apre la sezione Memoria</span></div>
+            <div class="command-hint"><span class="cmd">Jarvis, aggiungi compito [testo]</span><span>Crea un nuovo compito</span></div>
+            <div class="command-hint"><span class="cmd">Jarvis, completa compito [testo]</span><span>Segna un compito come completato</span></div>
+            <div class="command-hint"><span class="cmd">Jarvis, elimina compito [testo]</span><span>Rimuove un compito</span></div>
+            <div class="command-hint"><span class="cmd">Jarvis, che ore sono</span><span>Dice l'ora corrente</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="view-header">
+          <h1>Impostazioni</h1>
+          <p class="view-sub">Account, sincronizzazione e preferenze di sistema.</p>
+        </div>
+        <div class="grid grid-2">
+          <div class="panel glass hud-corners">
+            <div class="panel-title">ACCOUNT GOOGLE</div>
+            <div class="account-box">
+              <div class="account-avatar" id="account-avatar">?</div>
+              <div class="account-info">
+                <div class="account-name" id="account-name">Non connesso</div>
+                <div class="account-email" id="account-email">—</div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="settings-signin-btn">Accedi con Google</button>
+            <button class="btn btn-ghost hidden" id="settings-signout-btn">Disconnetti</button>
+          </div>
+          <div class="panel glass hud-corners">
+            <div class="panel-title">GOOGLE DRIVE</div>
+            <div class="status-row"><span>File dati</span><span class="tag" id="settings-file-name">jarvis_data.json</span></div>
+            <div class="status-row"><span>Ultima sincronizzazione</span><span class="tag" id="settings-last-sync">Mai</span></div>
+            <button class="btn btn-ghost" id="settings-force-sync-btn">Forza sincronizzazione</button>
+          </div>
+          <div class="panel glass hud-corners">
+            <div class="panel-title">CONFIGURAZIONE API</div>
+            <p class="hint-text">Inserisci le tue credenziali Google Cloud (Client ID e API Key).</p>
+            <input type="text" id="settings-client-id" class="hud-input" placeholder="Google OAuth Client ID">
+            <input type="text" id="settings-api-key" class="hud-input" placeholder="Google API Key">
+            <button class="btn btn-primary" id="settings-save-config-btn">Salva configurazione</button>
+          </div>
+          <div class="panel glass hud-corners">
+            <div class="panel-title">VOCE</div>
+            <div class="status-row"><span>Lingua riconoscimento</span><span class="tag">it-IT</span></div>
+            <div class="status-row"><span>Parola di attivazione</span><span class="tag">"Jarvis"</span></div>
+            <label class="switch-row">
+              <span>Risposte vocali attive</span>
+              <input type="checkbox" id="settings-voice-replies" checked>
+            </label>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/drive.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
